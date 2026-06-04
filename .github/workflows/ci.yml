@@ -10,9 +10,6 @@ jobs:
   test-pipeline:
     name: Run Nextflow Tests
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -22,8 +19,16 @@ jobs:
         with:
           version: "latest"
 
+      # This installs Mamba so we can create environments
+      - name: Install Conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-activate-base: true
+          activate-environment: ""
+
       - name: Test Scanpy Backend
-        run: nextflow run main.nf -profile docker --backend scanpy
+        # We now use -profile conda instead of docker
+        run: nextflow run main.nf -profile conda --backend scanpy
 
       - name: Test Seurat Backend
-        run: nextflow run main.nf -profile docker --backend seurat
+        run: nextflow run main.nf -profile conda --backend seurat
