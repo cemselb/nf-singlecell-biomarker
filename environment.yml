@@ -4,8 +4,11 @@ channels:
   - bioconda
 dependencies:
   - python=3.9
-  - r-base=4.2
   - scanpy
-  - seurat
+  - pandas
+  - scikit-learn
+  - leidenalg
+  - r-base=4.2
+  - r-seurat
   - multiqc
   - r-optparse
