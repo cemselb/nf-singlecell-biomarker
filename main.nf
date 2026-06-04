@@ -2,7 +2,6 @@
 
 nextflow.enable.dsl=2
 
-// log pipeline info upon start
 log.info """\
     =============================================
     S I N G L E - C E L L   P I P E L I N E
