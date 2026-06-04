@@ -19,15 +19,14 @@ jobs:
         with:
           version: "latest"
 
-      # This installs Mamba so we can create environments
-      - name: Install Conda
+      - name: Setup Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
           auto-activate-base: true
           activate-environment: ""
 
       - name: Test Scanpy Backend
-        # We now use -profile conda instead of docker
+        # We explicitly tell it to use the conda profile
         run: nextflow run main.nf -profile conda --backend scanpy
 
       - name: Test Seurat Backend
