@@ -2,13 +2,16 @@ name: sc-pipeline
 channels:
   - conda-forge
   - bioconda
+  - defaults
 dependencies:
   - python=3.9
   - scanpy
   - pandas
   - scikit-learn
   - leidenalg
-  - r-base=4.2
+  - r-base=4.2.0
   - r-seurat
-  - multiqc
   - r-optparse
+  - r-stringi
+  - multiqc
+  - icu=70.1
