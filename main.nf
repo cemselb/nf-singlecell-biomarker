@@ -67,5 +67,33 @@ workflow {
     matrix_ch = FETCH_DATA(params.input_url)
     
     // pass fetched data to QC process
-    RUN_SCANPY_QC(matrix_ch.matrix_dir)
+  process RUN_QC {
+    tag "QC and filtering"
+    publishDir "${params.outdir}/qc", mode: 'copy'
+
+    input:
+    path matrix_dir
+    val sample_id
+
+    output:
+    path "*_filtered.*", emit: filtered_data
+    path "*_pre_filter_violins.png", emit: plots
+
+    script:
+    if (params.backend == 'scanpy') {
+        """
+        run_scanpy_qc.py --matrix_dir ${matrix_dir} \\
+                         --min_genes ${params.min_genes} \\
+                         --max_mito ${params.max_mito} \\
+                         --out_prefix ${sample_id}
+        """
+    } else if (params.backend == 'seurat') {
+        """
+        run_seurat_qc.R --matrix_dir ${matrix_dir} \\
+                        --min_genes ${params.min_genes} \\
+                        --max_mito ${params.max_mito} \\
+                        --out_prefix ${sample_id}
+        """
+    }
+}
 }
