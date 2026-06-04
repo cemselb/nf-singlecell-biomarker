@@ -44,22 +44,19 @@ process FETCH_DATA {
     path "*_pre_filter_violins.png", emit: plots
 
     script:
+   script:
     if (params.backend == 'scanpy') {
         """
-        python \$(which run_scanpy_qc.py) --matrix_dir ${matrix_dir} \\
-                         --min_genes ${params.min_genes} \\
-                         --max_mito ${params.max_mito} \\
-                         --out_prefix ${sample_id}
+        python \$(which run_scanpy_dimred.py) --input_h5ad ${filtered_data} \\
+                             --out_prefix ${sample_id}
         """
     } else if (params.backend == 'seurat') {
         """
-        Rscript \$(which run_seurat_qc.R) --matrix_dir ${matrix_dir} \\
-                        --min_genes ${params.min_genes} \\
-                        --max_mito ${params.max_mito} \\
-                        --out_prefix ${sample_id}
+        Rscript \$(which run_seurat_dimred.R) --input_rds ${filtered_data} \\
+                            --out_prefix ${sample_id}
         """
     } else {
-        error "Unrecognised backend: ${params.backend}. Please choose 'scanpy' or 'seurat'."
+        error "Unrecognised backend."
     }
 }
 
