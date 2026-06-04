@@ -1,0 +1,27 @@
+name: Pipeline CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  test-pipeline:
+    name: Run Nextflow Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Nextflow
+        uses: nf-core/setup-nextflow@v2
+        with:
+          version: "latest"
+
+      - name: Test Scanpy Backend
+        run: nextflow run main.nf -profile docker --backend scanpy
+
+      - name: Test Seurat Backend
+        run: nextflow run main.nf -profile docker --backend seurat
