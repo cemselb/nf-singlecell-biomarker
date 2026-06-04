@@ -46,14 +46,14 @@ process FETCH_DATA {
     script:
     if (params.backend == 'scanpy') {
         """
-        run_scanpy_qc.py --matrix_dir ${matrix_dir} \\
+        python \$(which run_scanpy_qc.py) --matrix_dir ${matrix_dir} \\
                          --min_genes ${params.min_genes} \\
                          --max_mito ${params.max_mito} \\
                          --out_prefix ${sample_id}
         """
     } else if (params.backend == 'seurat') {
         """
-        run_seurat_qc.R --matrix_dir ${matrix_dir} \\
+        Rscript \$(which run_seurat_qc.R) --matrix_dir ${matrix_dir} \\
                         --min_genes ${params.min_genes} \\
                         --max_mito ${params.max_mito} \\
                         --out_prefix ${sample_id}
@@ -110,8 +110,9 @@ process RUN_MULTIQC {
 
 // workflow
 workflow {
+    multiqc_config = file("${projectDir}/assets/multiqc_config.yml")
     matrix_ch = FETCH_DATA(params.input_url)
-    RUN_QC(matrix_ch.matrix_dir, 'pbmc3k')
+    qc_ch = RUN_QC(matrix_ch.matrix_dir, 'pbmc3k')
     RUN_DIMRED(qc_ch.filtered_data, 'pbmc3k')
     RUN_MULTIQC(multiqc_config, qc_ch.plots.collect())
 }
