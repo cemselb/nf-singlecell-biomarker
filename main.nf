@@ -8,12 +8,12 @@ log.info """\
     =============================================
     Dataset      : ${params.input_url}
     Output Dir   : ${params.outdir}
+    Backend      : ${params.backend}
     Min Genes    : ${params.min_genes}
     Max Mito %   : ${params.max_mito}
     =============================================
     """
 
-// processes
 process FETCH_DATA {
     tag "Downloading 10x data"
     publishDir "${params.outdir}/raw_data", mode: 'copy'
@@ -31,7 +31,7 @@ process FETCH_DATA {
     """
 }
 
-  process RUN_QC {
+process RUN_QC {
     tag "QC and filtering"
     publishDir "${params.outdir}/qc", mode: 'copy'
 
@@ -44,19 +44,22 @@ process FETCH_DATA {
     path "*_pre_filter_violins.png", emit: plots
 
     script:
-   script:
     if (params.backend == 'scanpy') {
         """
-        python \$(which run_scanpy_dimred.py) --input_h5ad ${filtered_data} \\
-                             --out_prefix ${sample_id}
+        python ${projectDir}/bin/run_scanpy_qc.py --matrix_dir ${matrix_dir} \\
+                         --min_genes ${params.min_genes} \\
+                         --max_mito ${params.max_mito} \\
+                         --out_prefix ${sample_id}
         """
     } else if (params.backend == 'seurat') {
         """
-        Rscript \$(which run_seurat_dimred.R) --input_rds ${filtered_data} \\
-                            --out_prefix ${sample_id}
+        Rscript ${projectDir}/bin/run_seurat_qc.R --matrix_dir ${matrix_dir} \\
+                        --min_genes ${params.min_genes} \\
+                        --max_mito ${params.max_mito} \\
+                        --out_prefix ${sample_id}
         """
     } else {
-        error "Unrecognised backend."
+        error "Unrecognised backend: ${params.backend}. Please choose 'scanpy' or 'seurat'."
     }
 }
 
@@ -75,12 +78,12 @@ process RUN_DIMRED {
     script:
     if (params.backend == 'scanpy') {
         """
-        run_scanpy_dimred.py --input_h5ad ${filtered_data} \\
+        python ${projectDir}/bin/run_scanpy_dimred.py --input_h5ad ${filtered_data} \\
                              --out_prefix ${sample_id}
         """
     } else if (params.backend == 'seurat') {
         """
-        run_seurat_dimred.R --input_rds ${filtered_data} \\
+        Rscript ${projectDir}/bin/run_seurat_dimred.R --input_rds ${filtered_data} \\
                             --out_prefix ${sample_id}
         """
     } else {
@@ -94,7 +97,7 @@ process RUN_MULTIQC {
 
     input:
     path multiqc_config
-    path plots // We feed it the PNGs from the QC step
+    path plots 
 
     output:
     path "multiqc_report.html", emit: report
@@ -105,9 +108,9 @@ process RUN_MULTIQC {
     """
 }
 
-// workflow
 workflow {
     multiqc_config = file("${projectDir}/assets/multiqc_config.yml")
+
     matrix_ch = FETCH_DATA(params.input_url)
     qc_ch = RUN_QC(matrix_ch.matrix_dir, 'pbmc3k')
     RUN_DIMRED(qc_ch.filtered_data, 'pbmc3k')
