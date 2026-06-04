@@ -1,4 +1,4 @@
-# 🧬 scRNA-seq Biomarker Discovery Pipeline
+# 🧬 scRNA-seq Automated Nextflow Processing Pipeline
 [![Pipeline CI](https://github.com/cemselb/nf-singlecell-biomarker/actions/workflows/ci.yml/badge.svg)](https://github.com/cemselb/nf-singlecell-biomarker/actions)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A522.10.1-brightgreen.svg)](https://www.nextflow.io/)
 
@@ -29,4 +29,19 @@ nf-singlecell-biomarker/
 ├── .github/workflows/      
 │   └── ci.yml   
 └── README.md 
+```
+
+# How to
+```markdown
+curl -s [https://get.nextflow.io](https://get.nextflow.io) | bash
+```
+
+To run with **scanpy**
+```markdown
+nextflow run main.nf -profile conda --backend scanpy
+```
+
+To run with **Seurat**
+```markdown
+nextflow run main.nf -profile conda --backend seurat
 ```
