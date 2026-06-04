@@ -5,6 +5,7 @@ nextflow.enable.dsl=2
 process FETCH_DATA {
     tag "Downloading 10x data"
     publishDir "${params.outdir}/raw_data", mode: 'copy'
+    container false  // <--- This is the fix
 
     input:
     val url
