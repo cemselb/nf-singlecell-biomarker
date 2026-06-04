@@ -1,15 +1,20 @@
 # 🧬 scRNA-seq Biomarker Discovery Pipeline
+[![Pipeline CI](https://github.com/cemselb/nf-singlecell-biomarker/actions/workflows/ci.yml/badge.svg)](https://github.com/cemselb/nf-singlecell-biomarker/actions)
+[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A522.10.1-brightgreen.svg)](https://www.nextflow.io/)
 
-![Nextflow](https://img.shields.io/badge/Nextflow-1DB182?style=for-the-badge&logo=nextflow&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+A containerised, scalable **Nextflow** pipeline for scRNA-seq processing.
 
-A containerised, scalable Nextflow pipeline for scRNA-seq processing.
+## 🧬 Pipeline Architecture
 
-## 🏗️ Architecture
-1. **Data:** Automatically fetches public 10x Genomics `.mtx` matrices (defaults to 3k PBMCs).
-2. **QC:** Filters ambient RNA, dead cells (mitochondrial thresholds), and doublets using `Scanpy`.
-3. **Dimensionality reduction:** Performs highly variable gene (HVG) selection, PCA, and UMAP projection.
+This pipeline is modular and supports multiple backends (**Scanpy** for Python enthusiasts and **Seurat** for R users).
+
+```mermaid
+graph LR
+    A[Raw 10x Data] --> B(FETCH_DATA)
+    B --> C(RUN_QC)
+    C --> D(RUN_DIMRED)
+    D --> E[Clustered UMAP Output]
+```
 
 # Repo structure
 
@@ -17,25 +22,11 @@ A containerised, scalable Nextflow pipeline for scRNA-seq processing.
 nf-singlecell-biomarker/
 ├── main.nf
 ├── nextflow.config
-├── modules/                
-│   ├── fetch_data.nf 
-│   ├── qc_filter.nf
-│   └── dim_reduction.nf
 ├── bin/                    
 │   └── run_scanpy_qc.py 
 ├── assets/                 
-│   └── multiqc_config.yml 
+│   └── multiqc_config.yml ### not in use
 ├── .github/workflows/      
 │   └── ci.yml   
 └── README.md 
 ```
-
-
-## How to
-```bash
-# Clone the repository
-git clone [https://github.com/cemselb/nf-singlecell-biomarker.git](https://github.com/cemselb/nf-singlecell-biomarker.git)
-cd nf-singlecell-biomarker
-
-# Run the pipeline with the Docker profile
-nextflow run main.nf -profile docker
