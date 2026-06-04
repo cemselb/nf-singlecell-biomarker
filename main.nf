@@ -64,8 +64,36 @@ process FETCH_DATA {
     }
 }
 
+process RUN_DIMRED {
+    tag "PCA and UMAP"
+    publishDir "${params.outdir}/dimred", mode: 'copy'
+
+    input:
+    path filtered_data
+    val sample_id
+
+    output:
+    path "*_dimred.*", emit: final_data
+    path "*_umap.png", emit: plots
+
+    script:
+    if (params.backend == 'scanpy') {
+        """
+        run_scanpy_dimred.py --input_h5ad ${filtered_data} \\
+                             --out_prefix ${sample_id}
+        """
+    } else if (params.backend == 'seurat') {
+        """
+        run_seurat_dimred.R --input_rds ${filtered_data} \\
+                            --out_prefix ${sample_id}
+        """
+    } else {
+        error "Unrecognised backend."
+    }
+}
 // workflow
 workflow {
     matrix_ch = FETCH_DATA(params.input_url)
     RUN_QC(matrix_ch.matrix_dir, 'pbmc3k')
+    RUN_DIMRED(qc_ch.filtered_data, 'pbmc3k')
 }
