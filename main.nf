@@ -32,41 +32,6 @@ process FETCH_DATA {
     """
 }
 
-process RUN_SCANPY_QC {
-    tag "QC and filtering"
-    publishDir "${params.outdir}/qc", mode: 'copy'
-
-    input:
-    path matrix_dir
-
-    output:
-    path "filtered_adata.h5ad", emit: h5ad
-    path "qc_violins.png", emit: plots
-
-    script:
-    // run_scanpy_qc.py --input ${matrix_dir} --min_genes ${params.min_genes}
-    """
-    python -c "
-import scanpy as sc
-adata = sc.read_10x_mtx('${matrix_dir}/hg19/', var_names='gene_symbols')
-adata.var['mt'] = adata.var_names.str.startswith('MT-')
-sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
-sc.pl.violin(adata, ['n_genes_by_counts', 'total_counts', 'pct_counts_mt'], jitter=0.4, multi_panel=True, show=False)
-import matplotlib.pyplot as plt
-plt.savefig('qc_violins.png')
-adata = adata[adata.obs.n_genes_by_counts < 2500, :]
-adata = adata[adata.obs.pct_counts_mt < ${params.max_mito}, :]
-adata.write('filtered_adata.h5ad')
-    "
-    """
-}
-
-// workflow
-workflow {
-    // fetch data
-    matrix_ch = FETCH_DATA(params.input_url)
-    
-    // pass fetched data to QC process
   process RUN_QC {
     tag "QC and filtering"
     publishDir "${params.outdir}/qc", mode: 'copy'
@@ -94,6 +59,13 @@ workflow {
                         --max_mito ${params.max_mito} \\
                         --out_prefix ${sample_id}
         """
+    } else {
+        error "Unrecognised backend: ${params.backend}. Please choose 'scanpy' or 'seurat'."
     }
 }
+
+// workflow
+workflow {
+    matrix_ch = FETCH_DATA(params.input_url)
+    RUN_QC(matrix_ch.matrix_dir, 'pbmc3k')
 }
