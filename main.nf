@@ -91,9 +91,28 @@ process RUN_DIMRED {
         error "Unrecognised backend."
     }
 }
+
+process RUN_MULTIQC {
+    tag "Compiling Report"
+    publishDir "${params.outdir}/multiqc", mode: 'copy'
+
+    input:
+    path multiqc_config
+    path plots // We feed it the PNGs from the QC step
+
+    output:
+    path "multiqc_report.html", emit: report
+
+    script:
+    """
+    multiqc . --config ${multiqc_config}
+    """
+}
+
 // workflow
 workflow {
     matrix_ch = FETCH_DATA(params.input_url)
     RUN_QC(matrix_ch.matrix_dir, 'pbmc3k')
     RUN_DIMRED(qc_ch.filtered_data, 'pbmc3k')
+    RUN_MULTIQC(multiqc_config, qc_ch.plots.collect())
 }
