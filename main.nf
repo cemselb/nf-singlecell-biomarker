@@ -2,18 +2,6 @@
 
 nextflow.enable.dsl=2
 
-log.info """\
-    =============================================
-    S I N G L E - C E L L   P I P E L I N E
-    =============================================
-    Dataset      : ${params.input_url}
-    Output Dir   : ${params.outdir}
-    Backend      : ${params.backend}
-    Min Genes    : ${params.min_genes}
-    Max Mito %   : ${params.max_mito}
-    =============================================
-    """
-
 process FETCH_DATA {
     tag "Downloading 10x data"
     publishDir "${params.outdir}/raw_data", mode: 'copy'
@@ -109,6 +97,18 @@ process RUN_MULTIQC {
 }
 
 workflow {
+    log.info """\
+    =============================================
+    S I N G L E - C E L L   P I P E L I N E
+    =============================================
+    Dataset      : ${params.input_url}
+    Output Dir   : ${params.outdir}
+    Backend      : ${params.backend}
+    Min Genes    : ${params.min_genes}
+    Max Mito %   : ${params.max_mito}
+    =============================================
+    """
+
     multiqc_config = file("${projectDir}/assets/multiqc_config.yml")
 
     matrix_ch = FETCH_DATA(params.input_url)
