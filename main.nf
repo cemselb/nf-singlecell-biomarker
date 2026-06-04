@@ -17,9 +17,16 @@ process FETCH_DATA {
     """
     wget -qO pbmc3k.tar.gz ${url}
     tar -xzf pbmc3k.tar.gz
+    
+    echo "Files after extraction:"
+    ls -R filtered_gene_bc_matrices
+
+    if [ -d "filtered_gene_bc_matrices/hg19" ]; then
+        mv filtered_gene_bc_matrices/hg19/* filtered_gene_bc_matrices/
+        rmdir filtered_gene_bc_matrices/hg19
+    fi
     """
 }
-
 process RUN_QC {
     tag "QC and filtering"
     publishDir "${params.outdir}/qc", mode: 'copy'
