@@ -1,0 +1,11 @@
+name: sc-pipeline
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.9
+  - r-base=4.2
+  - scanpy
+  - seurat
+  - multiqc
+  - r-optparse
