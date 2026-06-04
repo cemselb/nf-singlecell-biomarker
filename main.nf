@@ -35,20 +35,14 @@ process RUN_QC {
     script:
     if (params.backend == 'scanpy') {
         """
-        python ${projectDir}/bin/run_scanpy_qc.py --matrix_dir ${matrix_dir} \\
-                         --min_genes ${params.min_genes} \\
-                         --max_mito ${params.max_mito} \\
-                         --out_prefix ${sample_id}
+        python ${projectDir}/bin/run_scanpy_qc.py --matrix_dir ${matrix_dir} --min_genes ${params.min_genes} --max_mito ${params.max_mito} --out_prefix ${sample_id}
         """
     } else if (params.backend == 'seurat') {
         """
-        Rscript ${projectDir}/bin/run_seurat_qc.R --matrix_dir ${matrix_dir} \\
-                        --min_genes ${params.min_genes} \\
-                        --max_mito ${params.max_mito} \\
-                        --out_prefix ${sample_id}
+        Rscript ${projectDir}/bin/run_seurat_qc.R --matrix_dir ${matrix_dir} --min_genes ${params.min_genes} --max_mito ${params.max_mito} --out_prefix ${sample_id}
         """
     } else {
-        error "Unrecognised backend: ${params.backend}. Please choose 'scanpy' or 'seurat'."
+        error "Unrecognised backend: ${params.backend}"
     }
 }
 
@@ -67,13 +61,11 @@ process RUN_DIMRED {
     script:
     if (params.backend == 'scanpy') {
         """
-        python ${projectDir}/bin/run_scanpy_dimred.py --input_h5ad ${filtered_data} \\
-                             --out_prefix ${sample_id}
+        python ${projectDir}/bin/run_scanpy_dimred.py --input_h5ad ${filtered_data} --out_prefix ${sample_id}
         """
     } else if (params.backend == 'seurat') {
         """
-        Rscript ${projectDir}/bin/run_seurat_dimred.R --input_rds ${filtered_data} \\
-                            --out_prefix ${sample_id}
+        Rscript ${projectDir}/bin/run_seurat_dimred.R --input_rds ${filtered_data} --out_prefix ${sample_id}
         """
     } else {
         error "Unrecognised backend."
@@ -98,102 +90,16 @@ process RUN_MULTIQC {
 }
 
 workflow {
-    log.info """\
+    log.info """
     =============================================
     S I N G L E - C E L L   P I P E L I N E
     =============================================
     Dataset      : ${params.input_url}
-    Output Dir   : ${params.outdir}
     Backend      : ${params.backend}
-    Min Genes    : ${params.min_genes}
-    Max Mito %   : ${params.max_mito}
     =============================================
     """
 
     multiqc_config = file("${projectDir}/assets/multiqc_config.yml")
-
-    matrix_ch = FETCH_DATA(params.input_url)
-    qc_ch = RUN_QC(matrix_ch.matrix_dir, 'pbmc3k')
-    RUN_DIMRED(qc_ch.filtered_data, 'pbmc3k')
-    RUN_MULTIQC(multiqc_config, qc_ch.plots.collect())
-}        """
-        python ${projectDir}/bin/run_scanpy_qc.py --matrix_dir ${matrix_dir} \\
-                         --min_genes ${params.min_genes} \\
-                         --max_mito ${params.max_mito} \\
-                         --out_prefix ${sample_id}
-        """
-    } else if (params.backend == 'seurat') {
-        """
-        Rscript ${projectDir}/bin/run_seurat_qc.R --matrix_dir ${matrix_dir} \\
-                        --min_genes ${params.min_genes} \\
-                        --max_mito ${params.max_mito} \\
-                        --out_prefix ${sample_id}
-        """
-    } else {
-        error "Unrecognised backend: ${params.backend}. Please choose 'scanpy' or 'seurat'."
-    }
-}
-
-process RUN_DIMRED {
-    tag "PCA and UMAP"
-    publishDir "${params.outdir}/dimred", mode: 'copy'
-
-    input:
-    path filtered_data
-    val sample_id
-
-    output:
-    path "*_dimred.*", emit: final_data
-    path "*_umap.png", emit: plots
-
-    script:
-    if (params.backend == 'scanpy') {
-        """
-        python ${projectDir}/bin/run_scanpy_dimred.py --input_h5ad ${filtered_data} \\
-                             --out_prefix ${sample_id}
-        """
-    } else if (params.backend == 'seurat') {
-        """
-        Rscript ${projectDir}/bin/run_seurat_dimred.R --input_rds ${filtered_data} \\
-                            --out_prefix ${sample_id}
-        """
-    } else {
-        error "Unrecognised backend."
-    }
-}
-
-process RUN_MULTIQC {
-    tag "Compiling Report"
-    publishDir "${params.outdir}/multiqc", mode: 'copy'
-
-    input:
-    path multiqc_config
-    path plots 
-
-    output:
-    path "multiqc_report.html", emit: report
-
-    script:
-    """
-    multiqc . --config ${multiqc_config}
-    """
-}
-
-workflow {
-    log.info """\
-    =============================================
-    S I N G L E - C E L L   P I P E L I N E
-    =============================================
-    Dataset      : ${params.input_url}
-    Output Dir   : ${params.outdir}
-    Backend      : ${params.backend}
-    Min Genes    : ${params.min_genes}
-    Max Mito %   : ${params.max_mito}
-    =============================================
-    """
-
-    multiqc_config = file("${projectDir}/assets/multiqc_config.yml")
-
     matrix_ch = FETCH_DATA(params.input_url)
     qc_ch = RUN_QC(matrix_ch.matrix_dir, 'pbmc3k')
     RUN_DIMRED(qc_ch.filtered_data, 'pbmc3k')
