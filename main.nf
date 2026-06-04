@@ -1,5 +1,4 @@
 #!/usr/bin/env nextflow
-
 nextflow.enable.dsl=2
 
 process FETCH_DATA {
@@ -17,16 +16,13 @@ process FETCH_DATA {
     """
     wget -qO pbmc3k.tar.gz ${url}
     tar -xzf pbmc3k.tar.gz
-    
-    echo "Files after extraction:"
-    ls -R filtered_gene_bc_matrices
-
+    # Flatten structure if necessary
     if [ -d "filtered_gene_bc_matrices/hg19" ]; then
         mv filtered_gene_bc_matrices/hg19/* filtered_gene_bc_matrices/
-        rmdir filtered_gene_bc_matrices/hg19
     fi
     """
 }
+
 process RUN_QC {
     tag "QC and filtering"
     publishDir "${params.outdir}/qc", mode: 'copy'
@@ -79,23 +75,6 @@ process RUN_DIMRED {
     }
 }
 
-process RUN_MULTIQC {
-    tag "Compiling Report"
-    publishDir "${params.outdir}/multiqc", mode: 'copy'
-
-    input:
-    path multiqc_config
-    path plots 
-
-    output:
-    path "multiqc_report.html", emit: report
-
-    script:
-    """
-    multiqc . --config ${multiqc_config}
-    """
-}
-
 workflow {
     log.info """
     =============================================
@@ -106,9 +85,7 @@ workflow {
     =============================================
     """
 
-    multiqc_config = file("${projectDir}/assets/multiqc_config.yml")
     matrix_ch = FETCH_DATA(params.input_url)
     qc_ch = RUN_QC(matrix_ch.matrix_dir, 'pbmc3k')
     RUN_DIMRED(qc_ch.filtered_data, 'pbmc3k')
-    RUN_MULTIQC(multiqc_config, qc_ch.plots.collect())
 }
