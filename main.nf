@@ -130,6 +130,33 @@ process ANNOTATE_CELLS {
     }
 }
 
+process SCORE_SIGNATURES {
+    tag "Module Scoring"
+    publishDir "${params.outdir}/signatures", mode: 'copy'
+
+    input:
+    path final_data
+    val sample_id
+
+    output:
+    path "*_scored.*", emit: scored_data
+    path "*_signature_umap.png", emit: umap_plots
+    path "*_signature_violin.png", emit: violin_plots
+
+    script:
+    if (params.backend == 'scanpy') {
+        """
+        python ${projectDir}/bin/run_scanpy_scoring.py --input_h5ad ${final_data} --out_prefix ${sample_id}
+        """
+    } else if (params.backend == 'seurat') {
+        """
+        Rscript ${projectDir}/bin/run_seurat_scoring.R --input_rds ${final_data} --out_prefix ${sample_id}
+        """
+    } else {
+        error "Unrecognised backend."
+    }
+}
+
 workflow {
     log.info """
     =============================================
@@ -139,11 +166,12 @@ workflow {
     Backend      : ${params.backend}
     =============================================
     """
-
     matrix_ch = FETCH_DATA(params.input_url)
     qc_ch = RUN_QC(matrix_ch.matrix_dir, 'pbmc3k')
+    
     dimred_ch = RUN_DIMRED(qc_ch.filtered_data, 'pbmc3k')
-    RUN_DIMRED(qc_ch.filtered_data, 'pbmc3k')
+    
     FIND_BIOMARKERS(dimred_ch.final_data, 'pbmc3k')
     ANNOTATE_CELLS(dimred_ch.final_data, 'pbmc3k')
+    SCORE_SIGNATURES(dimred_ch.final_data, 'pbmc3k')
 }
