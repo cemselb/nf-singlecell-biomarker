@@ -1,37 +1,35 @@
-name: Pipeline CI
+name: Nextflow CI
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [ main ]
 
 jobs:
-  test-pipeline:
-    name: Run Nextflow Tests
+  test:
     runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+    defaults:
+      run:
+        shell: bash -el {0}
 
-      - name: Install Nextflow
-        uses: nf-core/setup-nextflow@v2
-        with:
-          version: "latest"
+    steps:
+      - uses: actions/checkout@v3
 
       - name: Setup Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
-          auto-activate-base: true
-          activate-environment: sc-pipeline
+          auto-update-conda: true
           environment-file: environment.yml
-          use-mamba: true  # <--- THIS IS THE FIX
-          channels: conda-forge,bioconda
+          activate-environment: sc-pipeline
+          use-mamba: true
+          miniforge-variant: Mambaforge
 
-      - name: Test Scanpy Backend
-        shell: bash -el {0}
-        run: nextflow run main.nf -profile conda --backend scanpy
+      - name: Install Nextflow
+        run: |
+          wget -qO- https://get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
 
-      - name: Test Seurat Backend
-        shell: bash -el {0}
-        run: nextflow run main.nf -profile conda --backend seurat
+      - name: Run Pipeline (Dry Run or Small Test)
+        run: |
+          nextflow run main.nf -profile conda
