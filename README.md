@@ -50,16 +50,27 @@ flowchart TD
 # Repo structure
 
 ```
+## 📂 Repository Structure
+
 nf-singlecell-biomarker/
-├── main.nf
-├── nextflow.config
-├── bin/                    
-│   └── run_scanpy_qc.py 
-├── assets/                 
-│   └── multiqc_config.yml ### not in use
-├── .github/workflows/      
-│   └── ci.yml   
-└── README.md 
+├── .github/workflows/
+│   └── ci.yml                     # Automated testing and continuous integration
+├── assets/
+│   └── multiqc_config.yml         # Custom MultiQC reporting configuration !!! Currently NOT in use
+├── bin/                           # Executable scripts for pipeline processes
+│   ├── run_scanpy_annotation.py   # ML annotation via CellTypist
+│   ├── run_scanpy_dimred.py       # Scanpy PCA & UMAP
+│   ├── run_scanpy_markers.py      # Scanpy DGE (Wilcoxon/Leiden)
+│   ├── run_scanpy_qc.py           # Scanpy QC & Filtering
+│   ├── run_seurat_annotation.R    # ML annotation via SingleR
+│   ├── run_seurat_dimred.R        # Seurat PCA & UMAP
+│   ├── run_seurat_markers.R       # Seurat DGE
+│   └── run_seurat_qc.R            # Seurat QC & Filtering
+├── LICENSE                        # Open-source license (e.g., MIT)
+├── README.md                      # Pipeline documentation and architecture
+├── environment.yml                # Conda environment with pinned ML/R/Python dependencies
+├── main.nf                        # Main Nextflow workflow script
+└── nextflow.config                # AWS/HPC resource allocation
 ```
 
 # How to
