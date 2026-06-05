@@ -115,6 +115,7 @@ workflow {
 
     matrix_ch = FETCH_DATA(params.input_url)
     qc_ch = RUN_QC(matrix_ch.matrix_dir, 'pbmc3k')
+    dimred_ch = RUN_DIMRED(qc_ch.filtered_data, 'pbmc3k')
     RUN_DIMRED(qc_ch.filtered_data, 'pbmc3k')
     FIND_BIOMARKERS(dimred_ch.final_data, 'pbmc3k')
 }
