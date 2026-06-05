@@ -53,9 +53,8 @@ flowchart TD
 nf-singlecell-biomarker/
 ├── .github/workflows/
 │   └── ci.yml
-├── assets/
-│   └── multiqc_config.yml         #!!! Currently NOT in use
 ├── bin/
+│   ├── run_attribution.py         # Lightweight Differential Importance 
 │   ├── run_scanpy_annotation.py   # ML annotation via CellTypist
 │   ├── run_scanpy_dimred.py       # Scanpy PCA & UMAP
 │   ├── run_scanpy_markers.py      # Scanpy DGE (Wilcoxon/Leiden)
