@@ -103,6 +103,33 @@ process FIND_BIOMARKERS {
     }
 }
 
+process ANNOTATE_CELLS {
+    tag "ML Cell Annotation"
+    publishDir "${params.outdir}/annotation", mode: 'copy'
+
+    input:
+    path final_data
+    val sample_id
+
+    output:
+    path "*_annotated.*", emit: annotated_data
+    path "*_celltypes.csv", emit: celltype_counts
+    path "*_annotation_umap.png", emit: plots
+
+    script:
+    if (params.backend == 'scanpy') {
+        """
+        python ${projectDir}/bin/run_scanpy_annotation.py --input_h5ad ${final_data} --out_prefix ${sample_id}
+        """
+    } else if (params.backend == 'seurat') {
+        """
+        Rscript ${projectDir}/bin/run_seurat_annotation.R --input_rds ${final_data} --out_prefix ${sample_id}
+        """
+    } else {
+        error "Unrecognised backend."
+    }
+}
+
 workflow {
     log.info """
     =============================================
@@ -118,4 +145,5 @@ workflow {
     dimred_ch = RUN_DIMRED(qc_ch.filtered_data, 'pbmc3k')
     RUN_DIMRED(qc_ch.filtered_data, 'pbmc3k')
     FIND_BIOMARKERS(dimred_ch.final_data, 'pbmc3k')
+    ANNOTATE_CELLS(dimred_ch.final_data, 'pbmc3k')
 }
