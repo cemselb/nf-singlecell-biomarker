@@ -20,3 +20,8 @@ dependencies:
   - celltypist
   - bioconductor-singler
   - bioconductor-celldex
+  - pytorch
+  - captum
+  - matplotlib
+  - seaborn
+  - pandas
