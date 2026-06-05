@@ -4,19 +4,19 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - python=3.9
+  - python
   - scanpy
   - pandas
   - scikit-learn
   - leidenalg
   - matplotlib-base
-  - r-base=4.2.0
+  - r-base
   - r-seurat
   - r-optparse
   - r-stringi
-  - r-dplyr 
+  - r-dplyr
   - r-ggplot2
-  - icu=70.1
+  - multiqc
   - celltypist
   - bioconductor-singler
   - bioconductor-celldex
