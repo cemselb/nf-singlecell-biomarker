@@ -17,3 +17,6 @@ dependencies:
   - r-dplyr 
   - r-ggplot2
   - icu=70.1
+  - celltypist
+  - bioconductor-singler
+  - bioconductor-celldex
