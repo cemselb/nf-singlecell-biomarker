@@ -9,9 +9,11 @@ dependencies:
   - pandas
   - scikit-learn
   - leidenalg
+  - matplotlib-base
   - r-base=4.2.0
   - r-seurat
   - r-optparse
   - r-stringi
-  - multiqc
+  - r-dplyr 
+  - r-ggplot2
   - icu=70.1
