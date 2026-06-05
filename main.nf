@@ -75,6 +75,34 @@ process RUN_DIMRED {
     }
 }
 
+process FIND_BIOMARKERS {
+    tag "Clustering & DGE"
+    publishDir "${params.outdir}/biomarkers", mode: 'copy'
+
+    input:
+    path final_data
+    val sample_id
+
+    output:
+    path "*_top_markers.csv", emit: marker_tables
+    path "*_marker_heatmap.png", emit: plots
+
+    script:
+    if (params.backend == 'scanpy') {
+        """
+        # Assume python script runs Leiden clustering and tl.rank_genes_groups
+        python ${projectDir}/bin/run_scanpy_markers.py --input_h5ad ${final_data} --out_prefix ${sample_id}
+        """
+    } else if (params.backend == 'seurat') {
+        """
+        # Assume R script runs FindNeighbors, FindClusters, and FindAllMarkers
+        Rscript ${projectDir}/bin/run_seurat_markers.R --input_rds ${final_data} --out_prefix ${sample_id}
+        """
+    } else {
+        error "Unrecognised backend."
+    }
+}
+
 workflow {
     log.info """
     =============================================
@@ -88,4 +116,5 @@ workflow {
     matrix_ch = FETCH_DATA(params.input_url)
     qc_ch = RUN_QC(matrix_ch.matrix_dir, 'pbmc3k')
     RUN_DIMRED(qc_ch.filtered_data, 'pbmc3k')
+    FIND_BIOMARKERS(dimred_ch.final_data, 'pbmc3k')
 }
