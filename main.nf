@@ -157,6 +157,24 @@ process SCORE_SIGNATURES {
     }
 }
 
+process CALC_ATTRIBUTION {
+    tag "XAI Gene Attribution"
+    publishDir "${params.outdir}/attribution", mode: 'copy'
+
+    input:
+    path final_data
+    val sample_id
+
+    output:
+    path "*_attributions.csv", emit: attr_csv
+    path "*_attr_heatmap.png", emit: plots
+
+    script:
+    """
+    python ${projectDir}/bin/run_attribution.py --input_h5ad ${final_data} --out_prefix ${sample_id}
+    """
+}
+
 workflow {
     log.info """
     =============================================
@@ -174,4 +192,6 @@ workflow {
     FIND_BIOMARKERS(dimred_ch.final_data, 'pbmc3k')
     ANNOTATE_CELLS(dimred_ch.final_data, 'pbmc3k')
     SCORE_SIGNATURES(dimred_ch.final_data, 'pbmc3k')
+
+    CALC_ATTRIBUTION(dimred_ch.final_data, 'pbmc3k')
 }
