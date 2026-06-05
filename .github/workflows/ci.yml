@@ -16,14 +16,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Miniconda
+     - name: Setup Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
-          auto-update-conda: true
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          use-mamba: true
           environment-file: environment.yml
           activate-environment: sc-pipeline
-          use-mamba: true
-          miniforge-variant: Mambaforge
 
       - name: Install Nextflow
         run: |
