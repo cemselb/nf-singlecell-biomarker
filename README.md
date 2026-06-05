@@ -24,27 +24,30 @@ flowchart TD
     %% Parallel ML and DGE Nodes
     BIOMARKERS["FIND_BIOMARKERS<br/>DGE"]
     ANNOTATE["ANNOTATE_CELLS<br/>ML Annotation (CellTypist / SingleR)"]
+    ATTR["ATTR_IMPORTANCE<br/>Integrated Gradients (PyTorch)"]
 
     %% Output Nodes
-    OutBio[\"📊 Top markers CSV<br/>🔥 Heatmaps"/]
-    OutAnno[\"🧬 Annotated h5ad/rds<br/>📈 Cell Type Counts"/]
+    OutBio[\"📊 Top markers CSV"/]
+    OutAnno[\"🧬 Annotated h5ad/rds"/]
+    OutAttr[\"🔥 Attribution Heatmaps"/]
 
     %% Connections
     Input --> FETCH
     FETCH -->|Raw Matrices| QC
     QC -->|Filtered Data| DIMRED
     
-    %% Forking the workflow
     DIMRED -->|Processed obj| BIOMARKERS
     DIMRED -->|Processed obj| ANNOTATE
+    DIMRED -->|Processed obj| ATTR
     
     BIOMARKERS --> OutBio
     ANNOTATE --> OutAnno
+    ATTR --> OutAttr
 
-    %% Apply Classes Safely
+    %% Apply Classes
     class Input input;
-    class FETCH,QC,DIMRED,BIOMARKERS,ANNOTATE process;
-    class OutBio,OutAnno output;
+    class FETCH,QC,DIMRED,BIOMARKERS,ANNOTATE,ATTR process;
+    class OutBio,OutAnno,OutAttr output;
 ```
 
 # Repo structure
@@ -54,7 +57,7 @@ nf-singlecell-biomarker/
 ├── .github/workflows/
 │   └── ci.yml
 ├── bin/
-│   ├── run_attribution.py         # Lightweight Differential Importance 
+│   ├── run_attribution.py         # Interpretable AI: Integrated Gradients
 │   ├── run_scanpy_annotation.py   # ML annotation via CellTypist
 │   ├── run_scanpy_dimred.py       # Scanpy PCA & UMAP
 │   ├── run_scanpy_markers.py      # Scanpy DGE (Wilcoxon/Leiden)
